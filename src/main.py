@@ -6,7 +6,8 @@ import sys
 import traceback
 import jishaku
 import asyncpg
-from cogs.utils import context,help
+from cogs.utils import context
+from cogs.utils.help import HelpCommand
 from colorama import Fore,init
 
 import config
@@ -60,7 +61,7 @@ class IronMan(commands.Bot):
             allowed_mentions=discord.AllowedMentions(everyone=False, roles=False, replied_user=True, users=True),
             activity=discord.Activity(type=discord.ActivityType.listening, name="to !help"),
             fetch_offline_members=True,
-            help_command = help.HelpCommand()
+            help_command = HelpCommand(),
             **kwargs,
         )
         self.OWNER = 749550694469599233
