@@ -2,7 +2,7 @@ from .utils import formats,emote
 from .utils.paginitators import SimplePages
 
 from discord.ext import commands
-from utils import menus
+from .utils import menus
 import io
 import discord
 import asyncio
