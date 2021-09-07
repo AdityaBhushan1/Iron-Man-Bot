@@ -9,7 +9,7 @@ import asyncpg
 import argparse
 import shlex
 
-from disputils import BotConfirmation
+#from disputils import BotConfirmation
 
 class Arguments(argparse.ArgumentParser):
     def error(self, message):
@@ -691,31 +691,31 @@ class Tags(commands.Cog):
         else:
             await ctx.send( f'{emote.error} | This server has no server-specific tags.')
 
-    @tag.command()
-    @suggest_box()
-    @commands.has_guild_permissions(manage_messages=True)
-    async def purge(self, ctx, member: TagMember):
-        """Removes all specific tags by a user.
-        You must have server-wide Manage Messages permissions to use this.
-        """
+    #@tag.command()
+    #@suggest_box()
+    #@commands.has_guild_permissions(manage_messages=True)
+    #async def purge(self, ctx, member: TagMember):
+       # """Removes all specific tags by a user.
+       # You must have server-wide Manage Messages permissions to use this.
+       # """
 
-        # Though inefficient, for UX purposes we should do two queries
+       # # Though inefficient, for UX purposes we should do two queries
 
-        query = "SELECT COUNT(*) FROM tags WHERE location_id=$1 AND owner_id=$2;"
-        count = await ctx.db.fetchrow(query, ctx.guild.id, member.id)
-        count = count[0] # COUNT(*) always returns 0 or higher
+        #query = "SELECT COUNT(*) FROM tags WHERE location_id=$1 AND owner_id=$2;"
+       # count = await ctx.db.fetchrow(query, ctx.guild.id, member.id)
+       # count = count[0] # COUNT(*) always returns 0 or higher
 
-        if count == 0:
-            return await ctx.send(f'{member} does not have any tags to purge.')
+        #if count == 0:
+        #    return await ctx.send(f'{member} does not have any tags to purge.')
 
-        confirmation = BotConfirmation(ctx, self.bot.color)
-        await confirmation.confirm(f"This will delete {count} tags are you sure? **This action cannot be reversed**.")
-        if confirmation.confirmed:
-            await confirmation.update(f"{emote.tick} | Successfully removed all {count} tags that belong to {member}.", color=self.bot.color)
-            query = "DELETE FROM tags WHERE location_id=$1 AND owner_id=$2;"
-            await ctx.db.execute(query, ctx.guild.id, member.id)
-        else:
-            await confirmation.update("Cancelling tag purge request.", hide_author=True, color=0xff5555)
+        #confirmation = BotConfirmation(ctx, self.bot.color)
+      #  await confirmation.confirm(f"This will delete {count} tags are you sure? **This action cannot be reversed**.")
+       # if confirmation.confirmed:
+      #      await confirmation.update(f"{emote.tick} | Successfully removed all {count} tags that belong to {member}.", color=self.bot.color)
+       #     query = "DELETE FROM tags WHERE location_id=$1 AND owner_id=$2;"
+       #     await ctx.db.execute(query, ctx.guild.id, member.id)
+      # else:
+       #     await confirmation.update("Cancelling tag purge request.", hide_author=True, color=0xff5555)
 
     @tag.command()
     @suggest_box()
