@@ -464,10 +464,6 @@ disputils = [
     {file = "disputils-0.2.0-py3-none-any.whl", hash = "sha256:750b55b97b1d27b045b5f9675c43ec6c0042cac857de95fa4dd916ded34d47e1"},
     {file = "disputils-0.2.0.tar.gz", hash = "sha256:d0a2671a16a6bf3cfffd962421fe8e6f196d199a7112ee6e8c78b57f4c85a021"},
 ]
-idna = [
-    {file = "idna-3.2-py3-none-any.whl", hash = "sha256:14475042e284991034cb48e06f6851428fb14c4dc953acd9be9a5e95c7b6dd7a"},
-    {file = "idna-3.2.tar.gz", hash = "sha256:467fbad99067910785144ce333826c71fb0e63a425657295239737f7ecd125f3"},
-]
 import-expression = [
     {file = "import_expression-1.1.4-py3-none-any.whl", hash = "sha256:292099910a4dcc65ba562377cd2265487ba573dd63d73bdee5deec36ca49555b"},
     {file = "import_expression-1.1.4.tar.gz", hash = "sha256:06086a6ab3bfa528b1c478e633d6adf2b3a990e31440f6401b0f3ea12b0659a9"},
