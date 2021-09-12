@@ -5,7 +5,7 @@ import requests
 import mystbin
 import unicodedata
 import typing as t
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus,quote
 import re
 import aiohttp
 import random
@@ -14,6 +14,9 @@ import io
 import zlib
 from .utils import fuzzy
 import os
+from datetime import datetime
+
+GITHUB_API_URL = "https://api.github.com"
 
 class SphinxObjectFileReader:
     # Inspired by Sphinx's InventoryFileReader
@@ -68,7 +71,11 @@ class Commands(commands.Cog, name='Commands'):
     def __init__(self, bot):
         self.bot = bot
 
-    
+    async def fetch_data(self, url: str) -> dict:
+        """Retrieve data as a dictionary."""
+        json_data = requests.get(url).json()
+        return json_data
+
     @commands.command()
     async def source(self, ctx):
         """yes, I am open-souce"""
@@ -337,21 +344,159 @@ class Commands(commands.Cog, name='Commands'):
                 return prefix + '-jp'
         return prefix
 
-    @commands.group(aliases=['rtfd'], invoke_without_command=True)
+    @commands.command(aliases=['rtfm'], invoke_without_command=True)
     async def rtfm(self, ctx, *, obj: str = None):
         key = self.transform_rtfm_language_key(ctx, 'latest')
         await self.do_rtfm(ctx, key, obj)
 
-    @rtfm.command(name='python', aliases=['py'])
+    @commands.command(aliases=['rtfm-py'])
     async def rtfm_python(self, ctx, *, obj: str = None):
         key = self.transform_rtfm_language_key(ctx, 'python')
         await self.do_rtfm(ctx, key, obj)
     
-    @rtfm.command(name="master", aliases=["2.0"])
+    @commands.command(aliases=["rtfm-master"])
     async def rtfm_master(self, ctx, *, obj: str = None):
         """Gives you a documentation link for a discord.py entity (master branch)"""
         await self.do_rtfm(ctx, "master", obj)
         
+
+    @commands.command(aliases=("git-userinfo",))
+    async def github_user_info(self, ctx: commands.Context, username: str) -> None:
+        """Fetches a user's GitHub information."""
+        async with ctx.typing():
+            user_data = await self.fetch_data(f"{GITHUB_API_URL}/users/{quote_plus(username)}")
+
+            # User_data will not have a message key if the user exists
+            if "message" in user_data:
+                embed = discord.Embed(
+                    description=f"The profile for `{username}` was not found.",
+                    colour=self.bot.color
+                )
+
+                await ctx.send(embed=embed)
+                return
+
+            org_data = await self.fetch_data(user_data["organizations_url"])
+            orgs = [f"[{org['login']}](https://github.com/{org['login']})" for org in org_data]
+            orgs_to_add = " | ".join(orgs)
+
+            gists = user_data["public_gists"]
+
+            # Forming blog link
+            if user_data["blog"].startswith("http"):  # Blog link is complete
+                blog = user_data["blog"]
+            elif user_data["blog"]:  # Blog exists but the link is not complete
+                blog = f"https://{user_data['blog']}"
+            else:
+                blog = "No website link available"
+
+            embed = discord.Embed(
+                title=f"`{user_data['login']}`'s GitHub profile info",
+                description=f"```\n{user_data['bio']}\n```\n" if user_data["bio"] else "",
+                colour=discord.Colour.blurple(),
+                url=user_data["html_url"],
+                timestamp=datetime.strptime(user_data["created_at"], "%Y-%m-%dT%H:%M:%SZ")
+            )
+            embed.set_thumbnail(url=user_data["avatar_url"])
+            embed.set_footer(text="Account created at")
+
+            if user_data["type"] == "User":
+
+                embed.add_field(
+                    name="Followers",
+                    value=f"[{user_data['followers']}]({user_data['html_url']}?tab=followers)"
+                )
+                embed.add_field(
+                    name="Following",
+                    value=f"[{user_data['following']}]({user_data['html_url']}?tab=following)"
+                )
+
+            embed.add_field(
+                name="Public repos",
+                value=f"[{user_data['public_repos']}]({user_data['html_url']}?tab=repositories)"
+            )
+
+            if user_data["type"] == "User":
+                embed.add_field(
+                    name="Gists",
+                    value=f"[{gists}](https://gist.github.com/{quote_plus(username, safe='')})"
+                )
+
+                embed.add_field(
+                    name=f"Organization{'s' if len(orgs)!=1 else ''}",
+                    value=orgs_to_add if orgs else "No organizations."
+                )
+            embed.add_field(name="Website", value=blog)
+
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=('git-repo',))
+    async def github_repo_info(self, ctx: commands.Context, *repo: str) -> None:
+        """
+        Fetches a repositories' GitHub information.
+        The repository should look like `user/reponame` or `user reponame`.
+        """
+        repo = "/".join(repo)
+        if repo.count("/") != 1:
+            embed = discord.Embed(
+                title=random.choice(NEGATIVE_REPLIES),
+                description="The repository should look like `user/reponame` or `user reponame`.",
+                colour=self.bot.color
+            )
+
+            await ctx.send(embed=embed)
+            return
+
+        async with ctx.typing():
+            repo_data = await self.fetch_data(f"{GITHUB_API_URL}/repos/{quote(repo)}")
+
+            # There won't be a message key if this repo exists
+            if "message" in repo_data:
+                embed = discord.Embed(
+                    title=random.choice(NEGATIVE_REPLIES),
+                    description="The requested repository was not found.",
+                    colour=self.bot.color
+                )
+
+                await ctx.send(embed=embed)
+                return
+
+        embed = discord.Embed(
+            title=repo_data["name"],
+            description=repo_data["description"],
+            colour=discord.Colour.blurple(),
+            url=repo_data["html_url"]
+        )
+
+        # If it's a fork, then it will have a parent key
+        try:
+            parent = repo_data["parent"]
+            embed.description += f"\n\nForked from [{parent['full_name']}]({parent['html_url']})"
+        except KeyError:
+            pass
+
+        repo_owner = repo_data["owner"]
+
+        embed.set_author(
+            name=repo_owner["login"],
+            url=repo_owner["html_url"],
+            icon_url=repo_owner["avatar_url"]
+        )
+
+        repo_created_at = datetime.strptime(repo_data["created_at"], "%Y-%m-%dT%H:%M:%SZ").strftime("%d/%m/%Y")
+        last_pushed = datetime.strptime(repo_data["pushed_at"], "%Y-%m-%dT%H:%M:%SZ").strftime("%d/%m/%Y at %H:%M")
+
+        embed.set_footer(
+            text=(
+                f"{repo_data['forks_count']} ⑂ "
+                f"• {repo_data['stargazers_count']} ⭐ "
+                f"• Created At {repo_created_at} "
+                f"• Last Commit {last_pushed}"
+            )
+        )
+
+        await ctx.send(embed=embed)
+
 
 def setup(bot):
     bot.add_cog(Commands(bot))
