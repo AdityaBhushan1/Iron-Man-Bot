@@ -344,7 +344,7 @@ class Commands(commands.Cog, name='Commands'):
                 return prefix + '-jp'
         return prefix
 
-    @commands.command(aliases=['rtfm'], invoke_without_command=True)
+    @commands.command(invoke_without_command=True)
     async def rtfm(self, ctx, *, obj: str = None):
         key = self.transform_rtfm_language_key(ctx, 'latest')
         await self.do_rtfm(ctx, key, obj)
