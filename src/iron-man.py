@@ -9,8 +9,9 @@ import asyncpg
 from cogs.utils import context
 from cogs.utils.help import HelpCommand
 from colorama import Fore,init
-
+from aiohttp import AsyncResolver, ClientSession, TCPConnector
 import config
+import socket
 
 init(autoreset=True)
 intents = discord.Intents.default()
@@ -104,5 +105,6 @@ async def bot_before_invoke(ctx):
     if ctx.guild is not None:
         if not ctx.guild.chunked:
             await ctx.guild.chunk()
-            
-bot.run(config.token)
+
+if __name__ == "__main__":
+    bot.run(config.token)
