@@ -8,6 +8,7 @@ import jishaku
 import asyncpg
 from cogs.utils import context
 from cogs.utils.help import HelpCommand
+from cogs.utils.buttons import SelfRoles
 from colorama import Fore,init
 from aiohttp import AsyncResolver, ClientSession, TCPConnector
 import config
@@ -68,6 +69,7 @@ class IronMan(commands.Bot):
         self.OWNER = 749550694469599233
         self.color = 0x73b504
         self.random_colors = random_color
+        self.persistent_views_added = False
         for extension in extensions:
             try:
                 self.load_extension(extension)
@@ -83,6 +85,14 @@ class IronMan(commands.Bot):
         ctx = await self.get_context(message,cls=context.Context)#
 
         await self.invoke(ctx)
+
+    async def on_ready(self):
+        if not self.persistent_views_added:
+            
+
+            self.add_view(SelfRoles(), message_id=887550744583110698)
+
+            self.persistent_views_added = True
 
 bot = IronMan()
 
