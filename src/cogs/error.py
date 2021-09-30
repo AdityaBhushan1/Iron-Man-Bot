@@ -4,16 +4,18 @@ from discord.ext.commands import errors
 from.utils.emote import tick,xmark
 from.utils.replies import NEGATIVE_REPLIES,ERROR_REPLIES,POSITIVE_REPLIES,OWNER_MENTION_REPLIES
 import random
+# from .music import NoVoiceChannel,AlreadyConnectedToChannel
 class Error(commands.Cog,name='Error'):
 
     def __init__(self,bot):
         self.bot = bot
 
+
     @commands.Cog.listener()
     async def on_command_error(self,ctx, error):
         if hasattr(ctx.command, 'on_error'):
             return
-
+        
         elif isinstance(error, commands.MissingPermissions):
             permissions = '\n'.join(
                 [f'> {permission}' for permission in error.missing_perms])
@@ -96,6 +98,12 @@ class Error(commands.Cog,name='Error'):
             
         elif isinstance(error, discord.ext.commands.errors.DisabledCommand):
             await ctx.send('Hey Man, The Command Is Disabled')
+
+        # elif isinstance(error,NoVoiceChannel):
+        #     await ctx.send("You must be in a voice channel to use this command")
+
+        # elif isinstance(error,AlreadyConnectedToChannel):
+        #     await ctx.send("Bot is already connected to a voice channel")
 
         else:
             raise error
