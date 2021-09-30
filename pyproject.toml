@@ -17,6 +17,7 @@ buttons = "^0.1.9"
 colorama = "^0.4.4"
 tortoise-orm = "^0.17.7"
 aiodns = "^3.0.0"
+wavelink = "^0.9.10"
 
 [tool.poetry.dev-dependencies]
 
